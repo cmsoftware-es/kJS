@@ -33,9 +33,10 @@ Theme_red = {
 	Name : "red",
 	Colors : { Base : "#B72727", Dark: "#B72727", Light: "#f74f4f", Highlight: "#f74f4f" },
 	Font : { Size : "10pt", Color: "black", Weight : "normal" } ,
-	TextBox : { Border : { Color: "#f34b4b", Width: "1px", Style: "solid", Radius: "3px"} },
-	Button : { Font : { Color: "#f34b4b", Weight: "bold", Size: "10pt"} },
-		Grid: { 	Border: { 	Color : "#f34b4b",
+	TextBox : { Border : { Color: "#c31b1b", Width: "1px", Style: "solid", Radius: "3px"} },
+	Button : { Font : { Color: "#c31b1b", Weight: "bold", Size: "10pt"} }, //f34b4b
+	Panel : { Image : "'/gradient-red-64.png'"  },
+	Grid: { Border: { 	Color : "#f34b4b",
 			 					Width : "1px",
 			 					Style : "solid" },
 			PageNavigator:{	Font : { Size : "9pt", Color : "#B72727" },
@@ -59,7 +60,8 @@ Theme_red = {
  	Font : { Size : "10pt", Color : "black", Weight : "normal" } ,
 	TextBox : { Border : { Color: "#31889E", Width : "1px", Style : "solid", Radius : "3px"} },
 	Button : { Font : { Color : "#31889E", Weight : "bold", Size : "10pt"} },
-		Grid: { 	Border: { 	Color : "#A8D8E3",
+	Panel : { Image : "'/gradient-marine-64.png'"  },
+	Grid: { Border: { 	Color : "#A8D8E3",
 			 					Width : "1px",
 			 					Style : "solid"
 				  			},
@@ -189,7 +191,8 @@ DataSet.prototype.PageNavigator = function()
 	{
 		if (i == this.PageManager.CurrentPage)
 			 str += '<a style="color:' + UI.Theme.Grid.PageNavigator.CurrentPage.Font.Color + ';font-size:' + UI.Theme.Grid.PageNavigator.CurrentPage.Font.Size + ';font-weight:bold;text-shadow: 0 0 0.5em #999, 0 0 0.5em #999, 0 0 0.5em #999;" href="javascript:' + this.Name + '.GotoPage(' + i + ')" >' + i + '</a>&nbsp;&nbsp;';
-		else str += '<a style="color:' + UI.Theme.Grid.PageNavigator.Font.Color + ';font-size:' + UI.Theme.Grid.PageNavigator.Font.Size + '" href="javascript:' + this.Name + '.GotoPage(' + i + ')" >' + i + '</a>&nbsp;&nbsp;';
+		else {	str += '<a style="color:' + UI.Theme.Grid.PageNavigator.Font.Color + ';font-size:' + UI.Theme.Grid.PageNavigator.Font.Size + '" href="javascript:' + this.Name + '.GotoPage(' + i + ')" >' + i + '</a>'; 
+				if( i < this.PageManager.PageCount) str += '&nbsp;&nbsp;' }
 	}
 	return str;
 }
@@ -900,11 +903,16 @@ UI.Now = function()
 	var today = new Date();
 	var dd = today.getDate();
 	var mm = today.getMonth()+1; //January is 0!
-	var h = today.getHours()+1; 
-	var m = today.getMinutes()+1; 
+	var h = today.getHours(); 
+	var m = today.getMinutes(); 
 	var s = today.getSeconds();
 	var yyyy = today.getFullYear();
-	if(dd<10){ dd = '0' + dd; } if(mm < 10){ mm = '0' + mm; } 
+
+	if(dd<10){ dd = '0' + dd; } 
+	if(mm < 10){ mm = '0' + mm; } 
+	if(h < 10){ h = '0' + h; } 
+	if(m < 10){ m = '0' + m; } 
+	if(s < 10){ s = '0' + s; } 
 	var t = dd + '/' + mm + '/' + yyyy + ' ' + h + ':' + m + ':' + s;
 	return t;
 }
@@ -1113,18 +1121,23 @@ UI.GetBrowser = function()
 	if (navigator.userAgent.toLowerCase().indexOf("msie 6") > -1)
 		this.Browser.ID = this.Browsers.IE6;
 	
-	this.Browser.SupportsHTML5 = ((this.Browser.ID == Firefox) || 
-								  (this.Browser.ID == Chrome) || 
-								  (this.Browser.ID == IE10) || 
-								  (this.Browser.ID == Safari) ||
-								  (this.Browser.ID == Opera) ||
-								  (this.Browser.ID == Android) );
+	this.Browser.SupportsHTML5 = ((this.Browser.ID == this.Browsers.Firefox) || 
+								  (this.Browser.ID == this.Browsers.Chrome) || 
+								  (this.Browser.ID == this.Browsers.IE10) || 
+								  (this.Browser.ID == this.Browsers.Safari) ||
+								  (this.Browser.ID == this.Browsers.Opera) ||
+								  (this.Browser.ID == this.Browsers.Android) );
 	return this.Browser.ID;
 }
 
 UI.IsBrowser = function(which)
 {
 	return (this.GetBrowser() == which);
+}
+
+UI.IsIE = function()
+{
+	return navigator.userAgent.toLowerCase().indexOf("msie") > -1;
 }
 
 UI.Combo.prototype.rset = function(self) { self.ul.style.display = 'none'; 
@@ -1163,4 +1176,9 @@ UI.CloneObject = function(from)
 {
 	var to = $.extend(true, {}, from);	
 	return to;
+}
+
+UI.ExtractFileName = function(fullPath)
+{
+	return fullPath.replace(/^.*[\\\/]/, '');
 }

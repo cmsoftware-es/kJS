@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="es-ES">
+
+<head>	
+	[RequireAuthentication]
+	
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	
+	<title>Conacwin32 - Tarjetas de visitas</title>
+
+	<link rel="stylesheet" type="text/css" href="/conacwin.css" />
+	<script type="text/javascript" src="/jquery-1.7.2.min.js"></script>
+	<script language="javascript" type="text/javascript" src="/ui.min.js"></script>
+	<script language="javascript" type="text/javascript" src="/user.js"></script>
+	<script language="javascript" type="text/javascript" src="/datetimepicker.js" defer="defer"></script>
+	<script type="text/javascript">
+		var DSVisitas; 
+		var DNI; var Nombre; var NTarjeta; var Apellido1; var Apellido2; var FechaInicial; var FechaFinal;
+		var Visitado; var Autoriza; var Motivo; var Empresa; var Telefono; var Vehiculo; var Foto; var XML; 
+		var FotoPreview; var StrFoto;
+				
+		function GruposAccesos()
+		{
+			var Div = UI.$$("#GruposAccesos"), i, r = new Array();
+			items = UI.$$('.label', Div);
+			for (i = items.length-1; i >= 0; i--) r.push(items[i].firstChild);
+			return r;
+		}
+
+		function PutDefaultValues(frm)
+		{			
+			frm.reset();
+			FechaInicial.value = UI.Now();
+			FechaFinal.value = UI.Now();
+			var items = GruposAccesos(), g;				
+
+			for (g = items.length-1; g >= 0; g--)
+			{					
+				if(items[g].value == User.GrupoAccesoPorDefectoVisitas) items[g].checked = true;
+			}
+			return false;
+		}
+
+		function LoadData(Page)
+		{				
+			//  Carlos, For server side paging:
+			//	var request = UI.Ajax.Get("/VisitasDataset?MaxRecords=500&Page=" + APage + "&LastDNI="  + UI.PageManager.Filter + "&Dir=" + UI.PageManager.Direction, 
+			if (!DSVisitas) {				
+			 	DSVisitas = new DataSet("/VisitasDataset", "Visitas", "DSVisitas", 500);
+			 	
+			 	var cols = 	'[{ title : "Nombre", align : "left", width : "170px", field : "N" },' +
+			 				' { title : "Apellido 1", align : "left", width : "170px", field : "A1" },' +
+			 				' { title : "Apellido 2", align : "left", width : "170px", field : "A2" },' +
+			 				' { title : "DNI", align : "left", width : "80px", field : "D" },' +
+			 				' { title : "Num. Tarjeta", align : "right", width : "100px", field : "T" },' +
+			 				' { title : "Fecha Modificaci&oacute;n", align : "left", width : "120px", field : "F" },' +
+			 				' { title : "Nombre del visitado", align : "left", width : "100%", field : "V" },' +
+			 				' { title : "Empresa", align : "left", width : "120px", titleWidth: "139px", field : "E" }]';
+
+			 	new DBGrid(DSVisitas, "#grid-holder", "Lista de visitas", cols); 			 		
+			}
+			PutDefaultValues(UI.$$('#VisitasForm'));
+			DSVisitas.GotoPage(Page);
+		}		
+
+		function SaveData()
+		{	if (UI.CheckRequiredFields())
+			{		
+				var sXML = 
+				"<?xml version='1.0'encoding='iso-8859-1'?>" +
+				"<data><row id_PERSONA='0' NumeroTarjeta='" + UI.XML(NTarjeta.value) + "' NumeroTarjetaOlvido='' DNI='" + UI.XML(DNI.value) + "' OperadorConacwin='setelsa' " +
+				"TarjetaEnRuta='0' TipoTarjeta='V' TipoEmpleado='1' Nombre='" + UI.XML(Nombre.value) + "' Apellido1='" + UI.XML(Apellido1.value) + "' " +
+				"Apellido2='" + UI.XML(Apellido2.value) + "' TarjetaAutorizada='1' TarjetaPrioritaria='0' TarjetaPrioritariaParking='0' VersionDeTarjeta='0' " +
+				"TipoUltimoMovimiento='85' LectoraUltimoMovimiento='0' ClaveTeclado='0' " + 
+				"FechaInicialValidez='" + UI.XML(FechaInicial.value) + "' FechaFinalValidez='" + UI.XML(FechaFinal.value) + "' " +
+				"NumeroGrupoHorarios='" + UI.XML(Horario.getAttribute("_Code")) + "' Foto='" + UI.XML(Foto.value) + "' " + " FechaAlta='" + UI.Now() + "' FechaUModif='" + UI.Now() + "' " +
+				"CodigoEmpresa='' CodigoDepartamento='' CodigoSeccion='' CodigoSubSeccion='' " +
+				"Ubicacion='' Puesto='' NumEmpleado='' Telefono='" + UI.XML(Telefono.value) + "' email='' TextoDepartamento='' Empresa='" + UI.XML(Empresa.value) + "' " +
+				"Comentarios='' Visitado='" + UI.XML(Visitado.value) + "' MotivoVisita='" + UI.XML(Motivo.value) + "' PersonaQAutoriza='" + UI.XML(Autoriza.value) + "' VisitaPrevista='0' FechaProximoAviso='3' " +
+				"TextoProximoAviso='' Matricula='" + UI.XML(Vehiculo.value) + "' /><NUM_GRU_ACC_EXT>";
+
+				var items = GruposAccesos(), g;				
+
+				for (g = items.length-1; g >= 0; g--)								
+					sXML += "<rec NG='" + items[g].value + "' v='"+ (items[g].checked ? "1" : "0") + "' />";					
+								
+				sXML +="</NUM_GRU_ACC_EXT><DFtar> </DFtar></data>"; 
+				
+				XML.value = UI.PrepareURL(sXML);
+				document.VisitasForm.action = '/Visitas/Save?NT=' + NTarjeta.value + '&DNI=' + DNI.value + '&Page=' + DSVisitas.PageManager.CurrentPage;
+			}
+			else return false; 
+		}
+		
+		function SetTheme(){
+			UI.Theme = Theme_marine;
+			var C = UI.Theme.TextBox.Border.Color;
+			UI.$$('#left-panel').style.backgroundColor = UI.Theme.Colors.Dark;
+			UI.$$('#header').style.background = "url(" + UI.Theme.Panel.Image + ")";
+			UI.$$('#fields').style.borderColor = UI.Theme.Grid.Border.Color;
+			UI.$$('#GruposAccesos').style.borderColor = C;
+			UI.$$('#submitBtn').style.color = UI.Theme.Button.Font.Color;
+			UI.$$('#resetBtn').style.color = UI.Theme.Button.Font.Color;
+			DNI.style.borderColor = C;
+			Nombre.style.borderColor = C;
+			NTarjeta.style.borderColor = C;
+			Apellido1.style.borderColor = C;
+			Apellido2.style.borderColor = C;
+			FechaInicial.style.borderColor = C;
+			FechaFinal.style.borderColor = C;
+			Visitado.style.borderColor = C;
+			Autoriza.style.borderColor = C;
+			Motivo.style.borderColor = C;
+			Empresa.style.borderColor = C;
+			Telefono.style.borderColor = C;
+			Vehiculo.style.borderColor = C;
+			Horario.style.borderColor = C;
+		}
+
+		function onLoad()
+		{	
+			UI.ProgressImg = UI.$$('#Progress');
+						
+			new UI.Combo('Visitado','#BEE5EF','#F1F1FF');
+			new UI.Combo('Autoriza','#BEE5EF','#F1F1FF');
+			new UI.Combo('Motivo','#BEE5EF','#F1F1FF');
+			new UI.Combo('Empresa', '#BEE5EF','#F1F1FF');
+			new UI.Combo('GrupoHorario', '#BEE5EF','#F1F1FF');			
+			//new UI.Panel('#wrapper', 'paneltest', null, "64px");
+
+			DNI = UI.$$('#DNI');
+			Nombre = UI.$$('#Nombre');
+			NTarjeta = UI.$$('#NTarjeta');
+			Apellido1 = UI.$$('#Apellido1');
+			Apellido2 = UI.$$('#Apellido2');
+			FechaInicial = UI.$$('#FechaInicial');
+			FechaFinal = UI.$$('#FechaFinal');
+			Visitado = UI.$$('#Visitado');
+			Autoriza = UI.$$('#Autoriza'); 
+			Motivo = UI.$$('#Motivo');
+			Empresa = UI.$$('#Empresa');
+			Telefono = UI.$$('#Telefono');
+			Vehiculo = UI.$$('#Vehiculo');
+			Horario = UI.$$('#GrupoHorario');			
+			Foto = UI.$$('#Foto');
+			FotoPreview = UI.$$('#FotoPreview');
+			StrFoto = UI.$$('#StrFoto');
+			XML = UI.$$('#XML');
+
+			SetTheme();
+			// var c = new Control(); c.Left = 10; alert(c.Left + "/" + c.fLeft);
+
+			UI.CheckStatus();			
+
+
+			var pNT = UI.GetURLParam('NT');
+			var pDNI = UI.GetURLParam('DNI');
+
+			if ((pNT != "") || (pDNI != "")) SelectRow(DSVisitas, 0, pDNI, pNT);
+			
+			var Page = UI.GetURLParam('Page');			
+			if ((Page == 0) || (Page == "")) Page = 1;
+
+			LoadData(Page);
+
+			
+		}
+
+		function SelectRow(DS, r, aDNI, aNT)
+		{			
+			//PutDefaultValues(UI.$$('#VisitasForm'));
+
+			var lNT, lDNI, g, accesos = GruposAccesos();
+			
+			for (g = accesos.length-1; g >= 0; g--)								
+					accesos[g].checked = false;				
+
+			if (typeof aDNI != "undefined")
+			{
+				lDNI = aDNI;
+				lNT = aNT;
+			}
+			else
+			{
+				lNT = DS.Data.Visitas[r].T;
+				lDNI = DS.Data.Visitas[r].D;
+			}
+
+			var request = UI.Ajax.Get('/Visita?NT=' + lNT + '&DNI=' + lDNI,
+				function() {					
+					var V = eval("(" + request.responseText + ")");
+
+					if (V)
+					{
+						V = V.Visita[0];
+						V.TieneGrupoAcceso = function(gr) { return (gr == this.GA1) || (gr == this.GA2) || (gr == this.GA3) || (gr == this.GA4)  ||
+																   (gr == this.GA5) || (gr == this.GA6) || (gr == this.GA7); }
+						DNI.value = V.DNI;
+						Nombre.value = V.Nombre;
+						NTarjeta.value = V.NumeroTarjeta;
+						Apellido1.value = V.Apellido1;
+						Apellido2.value = V.Apellido2;											
+						FechaInicial.value = UI.ParseDate(V.FechaInicialValidez);
+						FechaFinal.value = UI.ParseDate(V.FechaFinalValidez);
+						Visitado.value = V.NombreDelVisitado;
+						Autoriza.value = V.CV_NombredelVisitado;
+						Motivo.value = V.CV_00;
+						Empresa.value = V.Empresa;
+						Telefono.value = V.TelefonoVisitante
+						Vehiculo.value = V.CV_06;
+						Horario.value = V.NumeroGrupoHorarios + " - " + V.TextoGrupoHorario;
+						Horario.setAttribute("_Code", V.NumeroGrupoHorarios);
+
+						// Grupos de accesos
+						for (g = accesos.length-1; g >= 0; g--)									
+							accesos[g].checked = V.TieneGrupoAcceso(accesos[g].value);
+
+						if (V.StrFoto != "") {
+							FotoPreview.style.visibility = "visible";
+							FotoPreview.src = V.StrFoto; }
+						else { 
+							FotoPreview.style.visibility = "hidden";
+							FotoPreview.src = "null"
+						};
+					}
+				}
+			);
+		}
+		
+		function showFoto()
+		{			
+			 FotoPreview.src = "null"
+			 StrFoto.value = UI.ExtractFileName(Foto.value);
+			 
+			 // UI.GetBrowser();
+			
+			 // if ( UI.SupportsHTML5 )
+			 //     UI.PreviewImage(Foto, FotoPreview);
+			 // else	
+			 // {
+			 // 	var imgname = Foto.value;
+			 // 	imgname = imgname.replace(/\\/g,"/");
+			 // 	imgname = imgname.replace(/\'/g,"\\'");
+			 // 	FotoPreview.src = imgname;			 	
+			 // }
+			 // FotoPreview.style.visibility = "visible";
+		}
+
+	</script>	
+</head>
+<body onLoad="onLoad()">
+	<div style="z-index:100;right:42px;top:102px;position:absolute;padding:0;margin:0">
+		<img width=180px height=180px id="background" style="opacity:0.16;filter:alpha(opacity=16)" alt="Conacwin32 - Gesti&oacute;n de visitas"  src="/visitor.png" />
+	</div>	
+	<img onerror="return 0;" id="FotoPreview" style="width: 70px; height: 80px;z-index:120;left:790px;top:139px;position:absolute;padding:0;margin:0"/>
+
+	<div id="wrapper">
+		<div id="header" class="panel">		    
+			<div style="float:right;padding-top:20px"><span style="Display:block">[User]</span><a href='/'><span style="text-align:right;display:block">Inicio</span></a></div>
+			<div style="float:left"><h1>Conacwin32 - Gesti&oacute;n de visitas</h1></div>			
+		</div>
+		
+		<div class="InfoBalloon" style="display:none" id="Status"></div>
+		<div id="content" style="margin-left:10px !important">			
+			<form method="POST" action="/Visitas/Save" onsubmit="return SaveData()" id="VisitasForm" name="VisitasForm" ENCTYPE="multipart/form-data"><!--ENCTYPE="multipart/form-data"-->
+				<h3> Asignaci&oacute;n / modificaci&oacute;n </h3>
+				<input type="hidden" id="XML" name="XML">
+				<div id="fields" class="field-wrapper" style="padding: 4px 4px 4px 4px;">
+					<table cellpadding="2px">
+						<tr>
+							<td><label class="label required">DNI</label></td>
+							<td><label class="label required">N&uacute;mero Tarjeta</label></td>		
+							<td><label class="label">Foto</label></td>							
+							<td></td>
+						</tr>
+						<tr>
+							<td><input type="text" title="Campo obligatorio: DNI" style="width:260px" maxlength=15 class="text-box required" title="DNI" name="DNI" id="DNI" tabindex="10" value="" /></td>
+							<td><input type="text" title="Campo obligatorio: N&uacute;mero de Tarjeta"  style="width:220px" maxlength=15 class="text-box required" title="N&uacute;mero Tarjeta" name="NTarjeta" id="NTarjeta" tabindex="20" value="" /></td>
+							<td>
+								<div><input onchange="showFoto()" type="file" accept="image/*" tabindex="30" style="width:220px" id="Foto" name="Foto" id="Foto" /></div>
+							</td>
+							<td><input type="hidden" name="StrFoto" id="StrFoto" value="" /></td>
+						<tr>
+							<td><label class="label required">Nombre</label></td>
+							<td><label class="label">Apellido 1</label></td>
+							<td><label class="label">Apellido 2</label></td>	
+							<td></td>
+						</tr>
+						<tr>
+							<td><input type="text" title="Campo obligatorio: Nombre"  style="width:260px" maxlength=50 class="text-box required" title="Nombre" name="Nombre" id="Nombre" tabindex="40" value=""></input></td>
+							<td><input type="text" style="width:220px" maxlength=50 class="text-box" name="Apellido1" id="Apellido1" tabindex="50" value=""></input></td>
+							<td><input type="text" style="width:220px" maxlength=50 class="text-box" name="Apellido2" id="Apellido2" tabindex="60" value=""></input></td>							
+							<td></td>
+						</tr>
+						<tr>
+							<td><label class="label">Grupos de acceso</label></td>
+							<td><label class="label">Grupo horario</label>								
+							</td>
+							<td><label class="label required">&nbsp;Fecha inicial</label></td>
+							<td></td>
+						</tr>
+						<tr>
+							<td>
+								<div class="CheckList Scrollable" id="GruposAccesos" name="GruposAccesos" style="max-height: 84px !important; max-width:260px" tabindex="70">
+									[CheckListGruposAccesos]									
+								</div>
+							</td>
+							<td valign=top>
+								<div class="combo">										
+									<input type="text" style="width:220px" maxlength=50 class="text-box" name="GrupoHorario" id="GrupoHorario" tabindex="80" value=""></input>
+									<ul>
+										[GruposHorariosList]
+									</ul>
+								</div>
+							</td>
+							<td valign=top>
+								<table border=0>
+									<tr>
+										<td>
+											<input value="" title="Campo obligatorio: Fecha inicial" type="text" class="text-box required" name="FechaInicial" id="FechaInicial" tabindex="90" style="margin-top:-5px;margin-left:-2px;width:220px" maxlength=16>
+												<a style="z-index:1000" href="javascript:NewCal('FechaInicial','ddmmyyyy',true, 24)">
+												<img style="z-index:900" src="/cal.gif" class="calendar" alt="Seleccione fecha/hora">
+												</a>							
+											</input>
+										</td>
+									</tr>
+									<tr>
+										<td><label class="label required">Fecha final</label></td>
+									</tr>
+									<tr>										
+										<td>
+											<input value="" title="Campo obligatorio: Fecha Final"  type="text" class="text-box required" name="FechaFinal" id="FechaFinal" tabindex="100" style="margin-left:-2px;width:220px" maxlength=16>
+												<a style="z-index:1000" href="javascript:NewCal('FechaFinal','ddmmyyyy',true, 24)">
+												<img style="z-index:900" src="/cal.gif" class="calendar" alt="Seleccione fecha/hora">
+												</a>							
+											</input>
+										</td>
+									</tr>
+								</table>
+							</td>		
+							<td></td>
+						</tr>
+					</table>
+					<hr class="line" />
+					<table>
+					
+						<tr>
+							<td width="70px"><label for="Visitado" class="label">Visitado</label></td>
+							<td width="422px">
+								<div class="combo">
+									
+									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Visitado" id="Visitado" tabindex="110" value=""></input>
+									<ul>
+										[VisitadosList]
+									</ul>
+								</div>	
+							</td>								
+						</tr>
+						<tr>
+							<td width="70px"><label class="label">Autoriza</label></td>
+							<td width="422px">
+								<div class="combo">										
+									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Autoriza" id="Autoriza" tabindex="120" value=""></input>
+									<ul>
+										[VisitadosList]
+									</ul>
+								</div>	
+							</td>	
+						</tr>
+						<tr>
+							<td width="70px"><label class="label">Motivo</label></td>
+							<td width="422px">								
+								<div class="combo">
+									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Motivo" id="Motivo" tabindex="130" value=""></input>
+									<ul>
+										[MotivosList]
+									</ul>
+								</div>									
+							</td>
+						</tr>
+						<tr>
+							<td width="70px"><label class="label">Empresa</label></td>
+							<td width="422px">
+								<div class="combo">
+									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Empresa" id="Empresa" tabindex="140" value=""></input>
+									<ul>
+										[EmpresasList]
+									</ul>
+							</td>
+						</tr>
+							<td>
+							</td>
+							<td>
+							
+							</td>
+						</tr>
+						<tr>
+							<td width="70px"><label class="label">Tel&eacute;fono</label></td>
+							<td width="437px">
+								<input type="text" style="width:150px" maxlength=12 class="text-box" name="Telefono" id="Telefono" tabindex="150" value=""></input>								
+								<label style="padding-left:70px" class="label">Veh&iacute;culo</label>
+								<input type="text" style="width:150px" maxlength=12 class="text-box" name="Vehiculo" id="Vehiculo" tabindex="160" value=""></input>
+								
+							</td>
+						</tr>
+					</table>
+					<hr class="line" />
+					<table>
+						<tr>
+							<td align=right><button type="submit" tabindex="200" id="submitBtn"><span>Guardar</span></button><span> </span><button id="resetBtn" tabindex="210" onClick="return PutDefaultValues(this.form)"><span>Limpiar</span></button></td>
+							<td align=right></td>
+						</tr>
+					</table>
+				</div>
+			</form>			
+			
+			<div id="grid-holder" style="margin-bottom:16px;margin-top:22px;"></div>			
+			<img id="Progress" style="display:block;padding-left:46%;padding-top:20px" src="/processing.gif" />			
+		</div>
+	</div>
+	
+	<div id="left-panel" style="float:left; position: absolute; width:2%; left:0px; height:933px;background-color: #31889E; border-right: 1px solid white"></div>
+</body>
+<html>
