@@ -130,7 +130,7 @@ function DataSet(url, entity, dsname, rowsPerPage, navCallback, onReceiveData) {
 DataSet.prototype.Open = function(request) 
 {
 	this.Data = eval("(" + request.responseText + ")"); 
-	this.UpdateRowCount();		
+	this.UpdateRowCount();			
 }
 
 DataSet.prototype.UpdateRowCount = function()
@@ -554,7 +554,7 @@ function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSea
 
 	this.OnRender = renderCallback;
 
-	var html =		
+	var f, html =		
 	'<div>\n' +
 	'	<div class="grid-navigator">\n';
 
@@ -592,7 +592,7 @@ function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSea
 		w = col.width;
 		if (col.titleWidth) w = col.titleWidth;
 
-		html += '<th align=' + col.align + ' width="' + w + '"><a onclick="' + ds.Name + '.Sort(\'' + col.field + '\', this)">' + col.title + '</a></th>\n';
+		html += '<th align=' + col.align + ' width="' + w + '"><a id="c'+ col.field.replace(/\s/g, "") +'" onclick="' + ds.Name + '.Sort(\'' + col.field + '\', this)">' + col.title + '</a></th>\n';
 	}
 	
 	html +=
@@ -609,6 +609,12 @@ function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSea
 	this.Node = UI.$$(this.Name);
 
 	this.Dataset.Grid = this;
+
+	f = cols[0].field.replace(/\s/g, "");
+
+	$('#c' + f).addClass('sortColASC');
+	this.Dataset._lastSortField = cols[0].field;
+
 	if (typeof this.Dataset.OnNavigate == "undefined") this.Dataset.OnNavigate = this.OnRender;
 
 	return this;
