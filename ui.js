@@ -647,7 +647,7 @@ DBGrid.prototype.Render = function(DS)
 			}
 			TR.setAttribute('onmouseover', 'UI.ChangeColor(this, true)');
 			TR.setAttribute('onmouseout', 'UI.ChangeColor(this, false)');
-			TR.setAttribute('onclick', this.Grid.OnSelectRow + "(" + this.Name + ", " + i +")");
+			TR.setAttribute('onclick', "$('tr', '" +  this.Grid.Name + "').css('fontWeight', 'normal'); this.style.fontWeight = 'bold';" + this.Grid.OnSelectRow + "(" + this.Name + ", " + i +")");
 			//For UI.FindOnGrid: TR.setAttribute('ST', SearchText.toLowerCase());
 			
 			if ((i + 1) % 2 == 0) 
