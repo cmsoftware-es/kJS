@@ -10,7 +10,7 @@
 
 	<link rel="stylesheet" type="text/css" href="/conacwin.css" />
 	<script type="text/javascript" src="/jquery-1.7.2.min.js"></script>
-	<script language="javascript" type="text/javascript" src="/ui.min.js"></script>
+	<script language="javascript" type="text/javascript" src="/ui.js"></script>
 	<script language="javascript" type="text/javascript" src="/user.js"></script>
 	<script language="javascript" type="text/javascript" src="/datetimepicker.js" defer="defer"></script>
 	<script type="text/javascript">
@@ -30,8 +30,8 @@
 		function PutDefaultValues(frm)
 		{			
 			frm.reset();
-			FechaInicial.value = UI.Now();
-			FechaFinal.value = UI.Now();
+			FechaInicial.value = UI.Now(false);
+			FechaFinal.value = UI.Now(false);
 			var items = GruposAccesos(), g;				
 
 			for (g = items.length-1; g >= 0; g--)
@@ -57,9 +57,11 @@
 			 				' { title : "Nombre del visitado", align : "left", width : "100%", field : "V" },' +
 			 				' { title : "Empresa", align : "left", width : "120px", titleWidth: "139px", field : "E" }]';
 
-			 	new DBGrid(DSVisitas, "#grid-holder", "Lista de visitas", cols); 			 		
-			}
-			PutDefaultValues(UI.$$('#VisitasForm'));
+			 	new DBGrid(DSVisitas, "#grid-holder", "Lista de visitas", cols); 
+				
+				
+			}			
+			PutDefaultValues(UI.$$('#VisitasForm')); 	
 			DSVisitas.GotoPage(Page);
 		}		
 
@@ -150,20 +152,19 @@
 			SetTheme();
 			// var c = new Control(); c.Left = 10; alert(c.Left + "/" + c.fLeft);
 
-			UI.CheckStatus();			
-
-
-			var pNT = UI.GetURLParam('NT');
-			var pDNI = UI.GetURLParam('DNI');
-
-			if ((pNT != "") || (pDNI != "")) SelectRow(DSVisitas, 0, pDNI, pNT);
+								
 			
 			var Page = UI.GetURLParam('Page');			
 			if ((Page == 0) || (Page == "")) Page = 1;
 
 			LoadData(Page);
 
-			
+			var pNT = UI.GetURLParam('NT');
+			var pDNI = UI.GetURLParam('DNI');
+
+			if ((pNT != "") || (pDNI != "")) SelectRow(DSVisitas, 0, pDNI, pNT);
+
+			UI.CheckStatus();			
 		}
 
 		function SelectRow(DS, r, aDNI, aNT)
@@ -215,12 +216,10 @@
 						for (g = accesos.length-1; g >= 0; g--)									
 							accesos[g].checked = V.TieneGrupoAcceso(accesos[g].value);
 
-						if (V.StrFoto != "") {
-							FotoPreview.style.visibility = "visible";
+						if ((V.StrFoto != "") && (V.StrFoto != "fotos/")){							
 							FotoPreview.src = V.StrFoto; }
-						else { 
-							FotoPreview.style.visibility = "hidden";
-							FotoPreview.src = "null"
+						else { 							
+							FotoPreview.src = "/blank_user.gif"
 						};
 					}
 				}
@@ -252,7 +251,7 @@
 	<div style="z-index:100;right:42px;top:102px;position:absolute;padding:0;margin:0">
 		<img width=180px height=180px id="background" style="opacity:0.16;filter:alpha(opacity=16)" alt="Conacwin32 - Gesti&oacute;n de visitas"  src="/visitor.png" />
 	</div>	
-	<img onerror="return 0;" id="FotoPreview" style="width: 70px; height: 80px;z-index:120;left:790px;top:139px;position:absolute;padding:0;margin:0"/>
+	<img onerror="return 0;" id="FotoPreview" src="/blank_user.gif" style="width: 70px; height: 80px;z-index:120;left:790px;top:139px;position:absolute;padding:0;margin:0"/>
 
 	<div id="wrapper">
 		<div id="header" class="panel">		    

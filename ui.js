@@ -807,12 +807,21 @@ UI.FindOnGrid = function (input, grid)
 UI.ParseDate = function (d)
 {
 	if ((d) && (d.length > 16))
-		return d.slice(0, 16)
+	{
+		var h = d.slice(11);
+		
+		if (h[1] == ":") h = "0" + h;
+		if (h.length > 5) h = h.slice(0, 5);
+		return d.slice(0, 10) + " " + h;
+	}
 	else 
 	{
 	    if (d  === "undefined") 
-		     return "";
-		else return d;
+		     return this.Now(false);
+		else{			
+			if (d.length < 12) d = d + " 00:00";
+			return d;
+		}
 	}
 }
 
@@ -904,7 +913,7 @@ UI.Combo = function (id, h, l) {
 } 
 
 // Returns current system date/hour in dd/mm/yyyy hh:nn format
-UI.Now = function()
+UI.Now = function(secs)
 {
 	var today = new Date();
 	var dd = today.getDate();
@@ -914,12 +923,16 @@ UI.Now = function()
 	var s = today.getSeconds();
 	var yyyy = today.getFullYear();
 
+	if (typeof secs == "undefined") secs = true;
+
 	if(dd<10){ dd = '0' + dd; } 
 	if(mm < 10){ mm = '0' + mm; } 
 	if(h < 10){ h = '0' + h; } 
 	if(m < 10){ m = '0' + m; } 
+
 	if(s < 10){ s = '0' + s; } 
-	var t = dd + '/' + mm + '/' + yyyy + ' ' + h + ':' + m + ':' + s;
+	if (secs) s = ':' + s; else s = "";
+	var t = dd + '/' + mm + '/' + yyyy + ' ' + h + ':' + m + s;
 	return t;
 }
 
