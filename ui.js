@@ -80,6 +80,13 @@ Theme_red = {
 
 UI.Theme = Theme_marine;
 
+// IE < 9 not supports trim, then , add it
+if(typeof String.prototype.trim !== 'function') {
+  String.prototype.trim = function() {
+    return this.replace(/^\s+|\s+$/g, ''); 
+  }
+}
+
 // PageManager Object for Dataset
 function PageManager(rowsPerPage)
 {
@@ -389,6 +396,93 @@ UI.Padding = { Left: 0, Top: 0, Right: 0, Bottom: 0 };
 UI.SizeConstraints = { MaxWidth: 0, MaxHeight: 0, MinWidth: 0, MinHeight: 0 };
 UI.Anchors = { Left: 0, Top: 1, Right: 2, Bottom: 3 } ;
 
+
+// ****************************************************************************************
+// * Background wrapper class                                                             *
+// * **************************************************************************************
+
+function Background(Owner)
+{
+	Color = UI.Theme.Colors.Dark;
+	Image = "";
+	Repeat = "no-repeat";
+	Position = "0% 0%";
+	Attach = "scroll";
+	Owner = Owner;	
+}
+
+/*
+Background.prototype =
+{
+	get Owner(){ return this.fOwner; },
+	set Owner(val){ this.fOwner = val; },
+
+	get Color(){ return this.fColor; },
+	set Color(val) { 
+		this.fColor = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-color', val); 
+	},
+
+	get Image(){ return this.fImage; },
+	set Image(val) { 
+		this.fColor = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-image', val); 
+	},
+
+	get Repeat(){ return this.Repeat; },
+	set Repeat(val) { 
+		this.fRepeat = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-repeat', val); 
+	},
+
+	get Position(){ return this.fPosition; },
+	set Position(val) { 
+		this.fPosition = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-position', val); 
+	},
+
+	get Attach(){ return this.fAttach; },
+	set Attach(val) { 
+		this.fAttach = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-attachment', val); 
+	}		
+}
+*/
+// ****************************************************************************************
+// * Border wrapper class                                                                 *
+// * **************************************************************************************
+
+function Border(Owner)
+{
+	Color =  UI.Theme.Colors.Dark;
+	Width = "1px";
+	Style = "solid";
+	Owner = Owner;
+}
+/*
+Border.prototype =
+{
+	get Owner(){ return this.fOwner; },
+	set Owner(val){ this.fOwner = val; },
+
+	get Color(){ return this.fColor; },
+	set Color(val) { 
+		this.fColor = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('border', val); 
+	},
+
+	get Width(){ return this.fWidth; },
+	set Width(val) { 
+		this.fwidth = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('border-width', val); 
+	},
+
+	get Style(){ return this.fStyle; },
+	set Style(val) { 
+		this.fStyle = val; 		
+		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('border-style', val); 
+	}	
+}	*/
 // ****************************************************************************************
 // * Control ancestor class                                                               *
 // * Normally all visual controls must inherit from Control                               *
@@ -407,7 +501,8 @@ function Control()
 	this.fEnabled = true;     
     this.fMargin = UI.Margin;
     this.fPadding = UI.Padding;
-    this.fBackground = { Color: UI.Theme.Colors.Dark, Image: "", Repeat: "no-repeat", Position: "0% 0%", Attach : "scroll" };
+    this.fBackground = new Background(this);
+	this.fBorder = new Border(this);
     this.fCursor = "default";
     this.fFont = UI.Theme.Font;
     this.fSizeable = false;
@@ -423,6 +518,7 @@ function Control()
 }
 
 // Getters, setters...
+/*
 Control.prototype = {
 	get Element(){ return this.fElement; },
 
@@ -433,10 +529,10 @@ Control.prototype = {
 	set Align(val) { this.fAlign = val; },
 
 	get Left(){ var p = UI.Position(this.fElement); this.fLeft = p[0]; return p[0]; },
-	set Left(val){ this.fLeft = val; },
+	set Left(val){ this.fLeft = val; this.Element.style.left = val;},
 
 	get Top(){ var p = UI.Position(this.fElement); this.fTop = p[1]; return p[1]; },
-	set Top(val){ this.fTop = val; },
+	set Top(val){ this.fTop = val; this.Element.style.top = val;},
 
 	get Width(){ return this.fWidth; },
 	set Width(val){ this.fWidth = val; if (this.Element) this.Element.style.width = val; },
@@ -458,6 +554,9 @@ Control.prototype = {
 
 	get Background(){ return this.fBackground; },
 	set Background(val){ this.fBackground = val; },
+
+	get Border(){ return this.fBorder; },
+	set Border(val){ this.fBorder = val; },
 
 	get Cursor(){ return this.fCursor; },
 	set Cursor(val){ this.fCursor = val; },
@@ -481,9 +580,9 @@ Control.prototype = {
 	set Transparency(val){ this.fTransparency = val; },
 
 	get id(){ return this.fId; },
-	set id(val){ if ((!val) || (val.trim()=="")) val = "TODO: AUTO ID"; this.fId = val; }
+	set id(val){ if ((!val) || (val.trim()=="")) val = this.checkId(''); this.fId = val; }
 }
-
+*/
 Control.prototype.setParent = function(parent)
 {
 	if (typeof parent == "string") 
@@ -491,33 +590,11 @@ Control.prototype.setParent = function(parent)
 	this.Parent = parent;
 }
 
-// ****************************************************************************************
-// Panel class, div wrapper                                                               *
-// ****************************************************************************************
-
-UI.Panel = function (parent, id, width, height, align, left, top)
+Control.prototype.checkId = function(id)
 {
-	this.setParent(parent);
-
-	var html;
-
-	
-	this.id = id;
-
-	html = '<div class="panel" id="' + this.id + '"></div>';
-	$(this.Parent).prepend(html);
-	this.fElement = UI.$$('#' + this.id);
-
-	this.Align = align;
-	this.Left = left;
-	this.Top = top;
-	this.Width = width;
-	this.Height = height;	
-	this.Background.Repeat = "repeat-x";
-	this.Background.Image = "'/gradient-" + UI.Theme.Name +"-64.png'";
+	if ((id == '') || (id == null) || (typeof id == "undefined")) return "ctrl-"+UI.guid(); else return id;
 }
 
-UI.Panel.prototype = new Control(); 
 
 // ****************************************************************************************
 // * DBGrid class, data grid, binding to Dataset object                                   *
@@ -531,10 +608,12 @@ UI.Panel.prototype = new Control();
 // showRowInfo: show|hide information label with current page and records showed
 // showPages  : show|hide page shortcut links
 
-DBGrid.prototype = new Control();  // inheritance
-
 function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSearch, showButtons, showRowInfo, showPages)
 {
+	this.setParent(parent);
+	//this.Background.Owner = this;
+	//this.Border.Owner = this;
+
 	if (typeof parent == "string") 
 		parent = UI.$$(parent);
 
@@ -620,6 +699,8 @@ function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSea
 	return this;
 }
 
+DBGrid.prototype = new Control();  // inheritance
+
 DBGrid.prototype.Render = function(DS)
 {
 	var G
@@ -665,6 +746,69 @@ DBGrid.prototype.Render = function(DS)
 		cell.style.color = "red";						
 	}
 }
+
+UI.Dialog = function (parent, id, width, height, left, top, innerHTML, title)
+{
+	this.setParent(parent);
+	this.Background.Owner = this;
+	this.Border.Owner = this;
+
+	var html;	
+	this.id = this.checkId(id);
+
+	html = '<div class="draggable" style="position:absolute" id="' + this.id + '"></div>';
+	$(this.Parent).prepend(html);
+	this.fElement = UI.$$('#' + this.id);
+
+	this.Left = left;
+	this.Top = top;
+	this.Width = width;
+	this.Height = height;		
+	this.fElement.innerHTML = innerHTML;		
+	this.Background.Color = UI.Theme.Colors.Highlight;
+	this.Border.Color = UI.Theme.Colors.Dark;
+	this.Border.Width = "1px";
+	this.Border.Style = "solid";
+	this.Dragging = false;
+
+	this.fElement.onmouseup = function(event) { this.Dragging = false; }
+	this.fElement.onmousedown = function(event){ this.Dragging = true; }
+	this.fElement.onmousemove = function(event) { if (this.Dragging) { this.Left = event.clientX; this.Top = event.clientY; } };
+	
+	new UI.Panel(this.fElement, null, 1000, 20, 0, 0, "<span style='padding-left:4px;font-weight:bold;font-size:10pt'>" + title + "</span>");
+	return this;
+}
+UI.Dialog.prototype = new Control(); 
+
+// ****************************************************************************************
+// Panel class, div wrapper                                                               *
+// ****************************************************************************************
+
+UI.Panel = function (parent, id, width, height, left, top, innerHTML, align)
+{
+	this.setParent(parent);
+	this.Background.Owner = this;
+	this.Border.Owner = this;
+
+	var html;
+		
+	this.id = this.checkId(id);
+
+	html = '<div class="panel" id="' + this.id + '"></div>';
+	$(this.Parent).prepend(html);
+	this.fElement = UI.$$('#' + this.id);
+
+	this.Align = align;
+	this.Left = left;
+	this.Top = top;
+	this.Width = width;
+	this.Height = height;
+	this.fElement.innerHTML = innerHTML;		
+	//this.Background.Repeat = "repeat-x";
+	//this.Background.Image = "'/gradient-" + UI.Theme.Name +"-64.png'";
+}
+
+UI.Panel.prototype = new Control(); 
 
 // ****************************************************************************************
 // * UI Object, singleton, library main object                                            *
@@ -716,7 +860,14 @@ UI.$$ = function(id, parent)
 	else 
 	{
 		if (id.slice(0, 1) == '.') // By class
-		     return parent.getElementsByClassName(id.replace('.', ''));
+		     try
+		 	 {
+		         return parent.getElementsByClassName(id.replace('.', ''));
+		     }
+		     catch(e)
+		     {
+		     	return $(id, parent);
+		     }
 		else 
 		{
 			if (id.slice(0, 1) == '@') // By name
@@ -874,7 +1025,7 @@ UI.Combo = function (id, h, l) {
 	
 	self.inp.onfocus = function() { self.ul.style.display = 'block'; self.ul.className = 'focused'; self.hasfocus = true; self.sel = -1; UI.PutInternalCode(self.inp); }; 	
 	self.inp.onblur = function() { if (self.ul.className=='focused') {self.rset(self);} self.ul.className = ''; self.hasfocus = false; UI.PutInternalCode(self.inp); }; 
-	self.inp.onchange = UI.PutInternalCode(self.inp);	
+	try { self.inp.onchange = UI.PutInternalCode(self.inp);	} catch(e){   }
 	self.inp.onkeyup = 
 		function(e) {
 			var k = (e) ? e.keyCode : event.keyCode; 
@@ -894,7 +1045,7 @@ UI.Combo = function (id, h, l) {
 					self.list[self.sel].style.backgroundColor = self.l; 
 					self.inp.value = self.list[--self.sel].firstChild.data; self.list[self.sel].style.backgroundColor = self.h;
 				}
-			else if (((k > 47) && (k < 91)) || ((k > 95) && k(k < 112)) || (k==8)) {
+			else if (((k > 47) && (k < 91)) || ((k > 95) && (k < 112)) || (k==8)) {
 					var item, i;
 					v = self.inp.value.toLowerCase();
 					
@@ -911,6 +1062,14 @@ UI.Combo = function (id, h, l) {
 		};
 	self.inp.setAttribute( "autocomplete", "off" );
 } 
+
+UI.Combo.prototype.rset = function(self) { self.ul.style.display = 'none'; 
+										self.sel = -1; 
+										var i;
+										for (i=self.list.length - 1; i >= 0; i--) {
+											self.list[i].style.backgroundColor = self.l;
+										}
+										return false; };
 
 // Returns current system date/hour in dd/mm/yyyy hh:nn format
 UI.Now = function(secs)
@@ -1034,7 +1193,8 @@ UI.PutInternalCode = function(obj)
 	
 	if (ix > 0)
 	{
-	   var Code = obj.value.slice(0, ix).trim();
+	   var Code = obj.value.slice(0, ix);
+	   if (typeof Code == "string") Code = Code.trim();
 	   obj.setAttribute("_code", Code);
 	}
 }
@@ -1159,14 +1319,6 @@ UI.IsIE = function()
 	return navigator.userAgent.toLowerCase().indexOf("msie") > -1;
 }
 
-UI.Combo.prototype.rset = function(self) { self.ul.style.display = 'none'; 
-										self.sel = -1; 
-										var i;
-										for (i=self.list.length - 1; i >= 0; i--) {
-											self.list[i].style.backgroundColor = self.l;
-										}
-										return false; };
-
 // Creates or reuses a cell on a table and puts its Content and format
 UI.SetCell = function(i, NewGrid, Row, h, a, w)
 {
@@ -1200,4 +1352,12 @@ UI.CloneObject = function(from)
 UI.ExtractFileName = function(fullPath)
 {
 	return fullPath.replace(/^.*[\\\/]/, '');
+}
+
+function S4() {
+   return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+}
+
+UI.guid = function () {
+   return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
 }

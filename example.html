@@ -1,23 +1,21 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="es-ES">
-
+<html  xmlns="http://www.w3.org/1999/xhtml" dir="ltr" lang="es-ES">
 <head>	
-	[RequireAuthentication]
-	
+	[RequireAuthentication]	
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-	
+	<META HTTP-EQUIV="Pragma" CONTENT="no-cache">
+	<META HTTP-EQUIV="Expires" CONTENT="-1">	
 	<title>Conacwin32 - Tarjetas de visitas</title>
-
 	<link rel="stylesheet" type="text/css" href="/conacwin.css" />
-	<script type="text/javascript" src="/jquery-1.7.2.min.js"></script>
-	<script language="javascript" type="text/javascript" src="/ui.js"></script>
+	<script language="javascript" type="text/javascript" src="/jquery-1.7.2.min.js"></script>
+	<script language="javascript" type="text/javascript" src="/ui.min.js"></script>
 	<script language="javascript" type="text/javascript" src="/user.js"></script>
 	<script language="javascript" type="text/javascript" src="/datetimepicker.js" defer="defer"></script>
 	<script type="text/javascript">
-		var DSVisitas; 
-		var DNI; var Nombre; var NTarjeta; var Apellido1; var Apellido2; var FechaInicial; var FechaFinal;
-		var Visitado; var Autoriza; var Motivo; var Empresa; var Telefono; var Vehiculo; var Foto; var XML; 
-		var FotoPreview; var StrFoto;
+		
+		var DSVisitas,
+			DNINombre, NTarjeta, Apellido1, Apellido2, FechaInicial, FechaFinal,
+		 	Visitado, Autoriza, Motivo, Empresa, Telefono, Vehiculo, Foto, XML,
+		 	FotoPreview, StrFoto, CalDlg = null;
 				
 		function GruposAccesos()
 		{
@@ -36,7 +34,7 @@
 
 			for (g = items.length-1; g >= 0; g--)
 			{					
-				if(items[g].value == User.GrupoAccesoPorDefectoVisitas) items[g].checked = true;
+				if(items[g].value == User.GrupoAccesoPorDefectoVisitas) items[g].setAttribute('checked', 'checked');// = true;
 			}
 			return false;
 		}
@@ -66,8 +64,10 @@
 		}		
 
 		function SaveData()
-		{	if (UI.CheckRequiredFields())
+		{				
+			if (UI.CheckRequiredFields())
 			{		
+				
 				var sXML = 
 				"<?xml version='1.0'encoding='iso-8859-1'?>" +
 				"<data><row id_PERSONA='0' NumeroTarjeta='" + UI.XML(NTarjeta.value) + "' NumeroTarjetaOlvido='' DNI='" + UI.XML(DNI.value) + "' OperadorConacwin='setelsa' " +
@@ -120,7 +120,7 @@
 		}
 
 		function onLoad()
-		{	
+		{				
 			UI.ProgressImg = UI.$$('#Progress');
 						
 			new UI.Combo('Visitado','#BEE5EF','#F1F1FF');
@@ -169,7 +169,7 @@
 
 		function SelectRow(DS, r, aDNI, aNT)
 		{			
-			//PutDefaultValues(UI.$$('#VisitasForm'));
+			//PutDefaultValues(UI.$$('#VisitasForm'));			
 
 			var lNT, lDNI, g, accesos = GruposAccesos();
 			
@@ -211,6 +211,7 @@
 						Vehiculo.value = V.CV_06;
 						Horario.value = V.NumeroGrupoHorarios + " - " + V.TextoGrupoHorario;
 						Horario.setAttribute("_Code", V.NumeroGrupoHorarios);
+						StrFoto.value = V.StrFoto;
 
 						// Grupos de accesos
 						for (g = accesos.length-1; g >= 0; g--)									
@@ -245,6 +246,47 @@
 			 // FotoPreview.style.visibility = "visible";
 		}
 
+		/*
+		function CalendarDlg()
+		{
+			
+			var cnt = 	'<form><div class="field-wrapper" style="margin:2px !important;padding:6px">' +
+					    '	<table cellpadding="2px">' +
+						'	<tr>' +
+						'		<td style="padding-left:10px;padding-right:10px"><label class="label required">Desde</label></td>' +
+						'		<td style="padding-left:10px;padding-right:10px"><label class="label required">Hasta</label></td>' +								
+						'	</tr>' +
+						'	<tr>' +
+						'				<td style="padding-left:10px;padding-right:10px">' +
+						'					<input value="" title="Campo obligatorio: Desde fecha" type="text" class="text-box required" name="DesdeFecha" id="DesdeFecha" tabindex="90" style="margin-top:-5px;margin-left:-2px;width:120px" maxlength=16>' +
+						'						<a style="z-index:1000" href="javascript:NewCal("DesdeFecha","ddmmyyyy",true, 24)">' +
+						'						<img style="z-index:900" src="/cal.gif" class="calendar" alt="Seleccione fecha/hora">' +
+						'						</a>' +
+						'					</input>' +
+						'				</td>' +
+						'				<td style="padding-left:10px;padding-right:10px">' +
+						'					<input value="" title="Campo obligatorio: Hasta fecha" type="text" class="text-box required" name="HastaFecha" id="HastaFecha" tabindex="90" style="margin-top:-5px;margin-left:-2px;width:120px" maxlength=16>' +
+						'						<a style="z-index:1000" href="javascript:NewCal("HastaFecha","ddmmyyyy",true, 24)">' +
+						'						<img style="z-index:900" src="/cal.gif" class="calendar" alt="Seleccione fecha/hora">' +
+						'						</a>' +
+						'					</input>' +
+						'				</td>' +			
+						'	</tr>' +
+						'	</table>' +
+						'<hr class="line" />' +
+						'<table>' +
+						'	<tr>' +
+						'		<td style="padding-left:170px;padding-right:10px" align=right><button type="submit" tabindex="200" id="btnCalOk"><span>Guardar</span></button><span> </span><button id="btnCalCancel" tabindex="210" type="reset"><span>Limpiar</span></button></td>' +
+						'		<td align=right></td>' +
+						'	</tr>' +
+						'</table>' +
+						'</div></form>';
+			if (CalDlg == null) CalDlg = new UI.Dialog(UI.$$('#content'), 'dlgCalendario', null, null, "300px", "300px", cnt, "Asignar calendario");
+
+			return false;
+		}*/
+		
+
 	</script>	
 </head>
 <body onLoad="onLoad()">
@@ -273,8 +315,8 @@
 							<td></td>
 						</tr>
 						<tr>
-							<td><input type="text" title="Campo obligatorio: DNI" style="width:260px" maxlength=15 class="text-box required" title="DNI" name="DNI" id="DNI" tabindex="10" value="" /></td>
-							<td><input type="text" title="Campo obligatorio: N&uacute;mero de Tarjeta"  style="width:220px" maxlength=15 class="text-box required" title="N&uacute;mero Tarjeta" name="NTarjeta" id="NTarjeta" tabindex="20" value="" /></td>
+							<td><input type="text" title="DNI" style="width:260px" maxlength=15 class="text-box required" title="DNI" name="DNI" id="DNI" tabindex="10" value="" /></td>
+							<td><input type="text" title="N&uacute;mero de Tarjeta"  style="width:220px" maxlength=15 class="text-box required" title="N&uacute;mero Tarjeta" name="NTarjeta" id="NTarjeta" tabindex="20" value="" /></td>
 							<td>
 								<div><input onchange="showFoto()" type="file" accept="image/*" tabindex="30" style="width:220px" id="Foto" name="Foto" id="Foto" /></div>
 							</td>
@@ -286,13 +328,13 @@
 							<td></td>
 						</tr>
 						<tr>
-							<td><input type="text" title="Campo obligatorio: Nombre"  style="width:260px" maxlength=50 class="text-box required" title="Nombre" name="Nombre" id="Nombre" tabindex="40" value=""></input></td>
+							<td><input type="text" title="Nombre"  style="width:260px" maxlength=50 class="text-box required" title="Nombre" name="Nombre" id="Nombre" tabindex="40" value=""></input></td>
 							<td><input type="text" style="width:220px" maxlength=50 class="text-box" name="Apellido1" id="Apellido1" tabindex="50" value=""></input></td>
 							<td><input type="text" style="width:220px" maxlength=50 class="text-box" name="Apellido2" id="Apellido2" tabindex="60" value=""></input></td>							
 							<td></td>
 						</tr>
 						<tr>
-							<td><label class="label">Grupos de acceso</label></td>
+							<td><label class="label">Grupos de acceso</label><!--<button onclick="return CalendarDlg();"><span>?</span></button>--></td>
 							<td><label class="label">Grupo horario</label>								
 							</td>
 							<td><label class="label required">&nbsp;Fecha inicial</label></td>
@@ -316,7 +358,7 @@
 								<table border=0>
 									<tr>
 										<td>
-											<input value="" title="Campo obligatorio: Fecha inicial" type="text" class="text-box required" name="FechaInicial" id="FechaInicial" tabindex="90" style="margin-top:-5px;margin-left:-2px;width:220px" maxlength=16>
+											<input value="" title="Fecha inicial" type="text" class="text-box required" name="FechaInicial" id="FechaInicial" tabindex="90" style="margin-top:-5px;margin-left:-2px;width:220px" maxlength=16>
 												<a style="z-index:1000" href="javascript:NewCal('FechaInicial','ddmmyyyy',true, 24)">
 												<img style="z-index:900" src="/cal.gif" class="calendar" alt="Seleccione fecha/hora">
 												</a>							
@@ -328,7 +370,7 @@
 									</tr>
 									<tr>										
 										<td>
-											<input value="" title="Campo obligatorio: Fecha Final"  type="text" class="text-box required" name="FechaFinal" id="FechaFinal" tabindex="100" style="margin-left:-2px;width:220px" maxlength=16>
+											<input value="" title="Fecha Final"  type="text" class="text-box required" name="FechaFinal" id="FechaFinal" tabindex="100" style="margin-left:-2px;width:220px" maxlength=16>
 												<a style="z-index:1000" href="javascript:NewCal('FechaFinal','ddmmyyyy',true, 24)">
 												<img style="z-index:900" src="/cal.gif" class="calendar" alt="Seleccione fecha/hora">
 												</a>							
