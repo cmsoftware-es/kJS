@@ -44,7 +44,7 @@
 			//  Carlos, For server side paging:
 			//	var request = UI.Ajax.Get("/VisitasDataset?MaxRecords=500&Page=" + APage + "&LastDNI="  + UI.PageManager.Filter + "&Dir=" + UI.PageManager.Direction, 
 			if (!DSVisitas) {				
-			 	DSVisitas = new DataSet("/VisitasDataset", "Visitas", "DSVisitas", 500);
+			 	DSVisitas = new DataSet("/VisitasDataset?" + Math.random(), "Visitas", "DSVisitas", 500);
 			 	
 			 	var cols = 	'[{ title : "Nombre", align : "left", width : "170px", field : "N" },' +
 			 				' { title : "Apellido 1", align : "left", width : "170px", field : "A1" },' +
@@ -123,11 +123,11 @@
 		{				
 			UI.ProgressImg = UI.$$('#Progress');
 						
-			new UI.Combo('Visitado','#BEE5EF','#F1F1FF');
-			new UI.Combo('Autoriza','#BEE5EF','#F1F1FF');
-			new UI.Combo('Motivo','#BEE5EF','#F1F1FF');
-			new UI.Combo('Empresa', '#BEE5EF','#F1F1FF');
-			new UI.Combo('GrupoHorario', '#BEE5EF','#F1F1FF');			
+			new UI.Combo('Visitado','#BEE5EF','#F1F1FF', UI.$$("#VisitadoList"));
+			new UI.Combo('Autoriza','#BEE5EF','#F1F1FF', UI.$$("#AutorizaList"));
+			new UI.Combo('Motivo','#BEE5EF','#F1F1FF', UI.$$("#MotivosList"));
+			new UI.Combo('Empresa', '#BEE5EF','#F1F1FF', UI.$$("#EmpresasList"));
+			new UI.Combo('GrupoHorario', '#BEE5EF','#F1F1FF', UI.$$("#HorariosList"));			
 			//new UI.Panel('#wrapper', 'paneltest', null, "64px");
 
 			DNI = UI.$$('#DNI');
@@ -150,10 +150,7 @@
 			XML = UI.$$('#XML');
 
 			SetTheme();
-			// var c = new Control(); c.Left = 10; alert(c.Left + "/" + c.fLeft);
-
-								
-			
+						
 			var Page = UI.GetURLParam('Page');			
 			if ((Page == 0) || (Page == "")) Page = 1;
 
@@ -187,7 +184,7 @@
 				lDNI = DS.Data.Visitas[r].D;
 			}
 
-			var request = UI.Ajax.Get('/Visita?NT=' + lNT + '&DNI=' + lDNI,
+			var request = UI.Ajax.Get('/Visita?NT=' + lNT + '&DNI=' + lDNI + '&r=' + Math.random(),
 				function() {					
 					var V = eval("(" + request.responseText + ")");
 
@@ -245,16 +242,15 @@
 			 // }
 			 // FotoPreview.style.visibility = "visible";
 		}
-
-		/*
+		
 		function CalendarDlg()
 		{
 			
-			var cnt = 	'<form><div class="field-wrapper" style="margin:2px !important;padding:6px">' +
+			var cnt = 	'<form style="padding:4px"><div class="field-wrapper" style="margin:2px !important;padding:6px">' +
 					    '	<table cellpadding="2px">' +
 						'	<tr>' +
 						'		<td style="padding-left:10px;padding-right:10px"><label class="label required">Desde</label></td>' +
-						'		<td style="padding-left:10px;padding-right:10px"><label class="label required">Hasta</label></td>' +								
+						'		<td style="padding-left:10px;padding-right:10px"><label class="label required">Hasta</label></td>' +
 						'	</tr>' +
 						'	<tr>' +
 						'				<td style="padding-left:10px;padding-right:10px">' +
@@ -281,10 +277,10 @@
 						'	</tr>' +
 						'</table>' +
 						'</div></form>';
-			if (CalDlg == null) CalDlg = new UI.Dialog(UI.$$('#content'), 'dlgCalendario', null, null, "300px", "300px", cnt, "Asignar calendario");
+		 	new UI.Dialog('#content', 'dlgCalendario', null, null, "300px", "300px", cnt, "Mi primer diálogo de fisher-price");
 
 			return false;
-		}*/
+		}
 		
 
 	</script>	
@@ -334,7 +330,8 @@
 							<td></td>
 						</tr>
 						<tr>
-							<td><label class="label">Grupos de acceso</label><!--<button onclick="return CalendarDlg();"><span>?</span></button>--></td>
+							<td><label class="label">Grupos de acceso</label>
+								<!--<button onclick="return CalendarDlg();"><span>?</span></button>--></td>
 							<td><label class="label">Grupo horario</label>								
 							</td>
 							<td><label class="label required">&nbsp;Fecha inicial</label></td>
@@ -349,7 +346,7 @@
 							<td valign=top>
 								<div class="combo">										
 									<input type="text" style="width:220px" maxlength=50 class="text-box" name="GrupoHorario" id="GrupoHorario" tabindex="80" value=""></input>
-									<ul>
+									<ul id="HorariosList">
 										[GruposHorariosList]
 									</ul>
 								</div>
@@ -391,7 +388,7 @@
 								<div class="combo">
 									
 									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Visitado" id="Visitado" tabindex="110" value=""></input>
-									<ul>
+									<ul id="VisitadoList">
 										[VisitadosList]
 									</ul>
 								</div>	
@@ -402,7 +399,7 @@
 							<td width="422px">
 								<div class="combo">										
 									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Autoriza" id="Autoriza" tabindex="120" value=""></input>
-									<ul>
+									<ul id="AutorizaList">
 										[VisitadosList]
 									</ul>
 								</div>	
@@ -413,7 +410,7 @@
 							<td width="422px">								
 								<div class="combo">
 									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Motivo" id="Motivo" tabindex="130" value=""></input>
-									<ul>
+									<ul id="MotivosList">
 										[MotivosList]
 									</ul>
 								</div>									
@@ -424,7 +421,7 @@
 							<td width="422px">
 								<div class="combo">
 									<input type="text" style="width:419px" maxlength=50 class="text-box" name="Empresa" id="Empresa" tabindex="140" value=""></input>
-									<ul>
+									<ul id="EmpresasList">
 										[EmpresasList]
 									</ul>
 							</td>
@@ -440,7 +437,14 @@
 							<td width="437px">
 								<input type="text" style="width:150px" maxlength=12 class="text-box" name="Telefono" id="Telefono" tabindex="150" value=""></input>								
 								<label style="padding-left:70px" class="label">Veh&iacute;culo</label>
-								<input type="text" style="width:150px" maxlength=12 class="text-box" name="Vehiculo" id="Vehiculo" tabindex="160" value=""></input>
+								
+								<script>
+									if (UI.IsIE())
+										document.write('<input type="text" style="width:146px" maxlength=12 class="text-box" name="Vehiculo" id="Vehiculo" tabindex="160" value=""></input>');
+									else{
+										document.write('<input type="text" style="width:151px" maxlength=12 class="text-box" name="Vehiculo" id="Vehiculo" tabindex="160" value=""></input>');
+									}
+								</script>
 								
 							</td>
 						</tr>

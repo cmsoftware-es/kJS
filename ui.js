@@ -278,7 +278,7 @@ DataSet.prototype.Filter = function(str, self)
 	try
 	{	
 		var grid;
-		if (self.Grid) grid = self.Grid.Node;
+		if (self.Grid) grid = self.Grid.Element();
 
 		str = str.toLowerCase();
 
@@ -403,86 +403,80 @@ UI.Anchors = { Left: 0, Top: 1, Right: 2, Bottom: 3 } ;
 
 function Background(Owner)
 {
-	Color = UI.Theme.Colors.Dark;
-	Image = "";
-	Repeat = "no-repeat";
-	Position = "0% 0%";
-	Attach = "scroll";
-	Owner = Owner;	
+	_Color = UI.Theme.Colors.Dark;
+	_Image = "";
+	_Repeat = "no-repeat";
+	_Position = "0% 0%";
+	_Attach = "scroll";
+	_Owner = Owner;	
+
+	this.Color = function() { return _Color; }
+	this.Image = function() { return _Image; }
+	this.Repeat = function() { return _Repeat; }
+	this.Position = function() { return _Position; }
+	this.Attach = function() { return _Attach; }
+	this.Owner = function() { return _Owner; }
+
+	this.setColor = function(v) { 
+		_Color = v; 
+		if (_Owner != undefined) $(_Owner.Element()).css('background-color', v); 	
+	}
+	
+	this.setImage = function(v) {
+		_Image = v;
+		if (_Owner != undefined) $(_Owner.Element()).css('background-image', v);
+	} 
+	
+	this.setRepeat = function(v) { 
+		_Repeat = v;
+		if (_Owner != undefined) $(_Owner.Element()).css('background-repeat', v);
+	} 
+	
+	this.setPosition = function(v) { 
+		_Position = v;
+		if (_Owner != undefined) $(_Owner.Element()).css('background-position', v);
+	}
+	
+	this.setAttach = function(v) { 
+		_Attach = v;
+		if (_Owner != undefined) $(_Owner.Element()).css('background-attachment', v);
+	}
+	this.setOwner = function(v) { _Owner = v; }
 }
 
-/*
-Background.prototype =
-{
-	get Owner(){ return this.fOwner; },
-	set Owner(val){ this.fOwner = val; },
-
-	get Color(){ return this.fColor; },
-	set Color(val) { 
-		this.fColor = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-color', val); 
-	},
-
-	get Image(){ return this.fImage; },
-	set Image(val) { 
-		this.fColor = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-image', val); 
-	},
-
-	get Repeat(){ return this.Repeat; },
-	set Repeat(val) { 
-		this.fRepeat = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-repeat', val); 
-	},
-
-	get Position(){ return this.fPosition; },
-	set Position(val) { 
-		this.fPosition = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-position', val); 
-	},
-
-	get Attach(){ return this.fAttach; },
-	set Attach(val) { 
-		this.fAttach = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('background-attachment', val); 
-	}		
-}
-*/
 // ****************************************************************************************
 // * Border wrapper class                                                                 *
 // * **************************************************************************************
 
 function Border(Owner)
 {
-	Color =  UI.Theme.Colors.Dark;
-	Width = "1px";
-	Style = "solid";
-	Owner = Owner;
+	_Color =  UI.Theme.Colors.Dark;
+	_Width = "1px";
+	_Style = "solid";
+	_Owner = Owner;
+
+	this.Color = function() { return _Color; }
+	this.Width = function() { return _Width; }
+	this.Style = function() { return _Style; }
+	this.Owner = function() { return _Owner; }
+
+	this.setColor = function(v) { 
+		_Color = v; 		
+		if (_Owner != undefined) $(_Owner.Element()).css('border', v); 
+	}
+
+	this.setWidth = function(v) { 
+		_Width = v; 		
+		if (_Owner != undefined) $(_Owner.Element()).css('border-width', v); 
+	}
+
+	this.setStyle = function(v) { 
+		_Style = v; 		
+		if (_Owner != undefined)$(_Owner.Element()).css('border-style', v);
+	}
+	this.setOwner = function(v) { _Owner = v; }
 }
-/*
-Border.prototype =
-{
-	get Owner(){ return this.fOwner; },
-	set Owner(val){ this.fOwner = val; },
 
-	get Color(){ return this.fColor; },
-	set Color(val) { 
-		this.fColor = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('border', val); 
-	},
-
-	get Width(){ return this.fWidth; },
-	set Width(val) { 
-		this.fwidth = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('border-width', val); 
-	},
-
-	get Style(){ return this.fStyle; },
-	set Style(val) { 
-		this.fStyle = val; 		
-		if (typeof this.fOwner != "undefined") $(this.fOwner.fElement).css('border-style', val); 
-	}	
-}	*/
 // ****************************************************************************************
 // * Control ancestor class                                                               *
 // * Normally all visual controls must inherit from Control                               *
@@ -490,104 +484,91 @@ Border.prototype =
 
 function Control()
 {
-	this.fElement = null;
-	this.fParent = null;
-	this.fAlign = UI.Align.Custom;
-	this.fLeft = 0;
-	this.fTop = 0;
-	this.fWidth = 0;
-	this.fHeight = 0;
-	this.fVisible = true;
-	this.fEnabled = true;     
-    this.fMargin = UI.Margin;
-    this.fPadding = UI.Padding;
-    this.fBackground = new Background(this);
-	this.fBorder = new Border(this);
-    this.fCursor = "default";
-    this.fFont = UI.Theme.Font;
-    this.fSizeable = false;
-    this.fHint = "";
-    this.fzIndex = 0;
-    this.fTabOrder = 0;
-    this.fTransparency = 0;
-    this.fId = "";
+	_Element = null;
+	_Parent = null;
+	_Align = UI.Align.Custom;
+	_Left = 0;
+	_Top = 0;
+	_Width = 0;
+	_Height = 0;
+	_Visible = true;
+	_Enabled = true;     
+    _Margin = UI.Margin;
+    _Padding = UI.Padding;
+    _Background = new Background(this);
+	_Border = new Border(this);
+    _Cursor = "default";
+    _Font = UI.Theme.Font;
+    _Sizeable = false;
+    _Hint = "";
+    _zIndex = 0;
+    _TabOrder = 0;
+    _Transparency = 0;
+    _Id = "";
+
+    this.Element = function() { return _Element; }
+    this.Parent = function() { return _Parent; }
+    this.Align = function() { return _Align; }
+	this.Left = function() { 
+		if (_Element) { 
+			var p = UI.Position(_Element); 
+			_Left = p[0]; 
+			return p[0]; 
+		}
+		else { return _Left; }
+	}
+
+	this.Top = function() {
+	if (_Element) { 
+		var p = UI.Position(_Element); 
+			_Top = p[1]; 
+			return p[1]; 
+		}
+		else { return _Top; }
+	}
+
+	this.Width = function() { return _Width; }
+	this.Height = function() { return _Height; }
+	this.Visible = function() { return _Visible; }
+	this.Enabled = function() { return _Enabled; }
+	this.Margin = function() { return _Margin; }
+	this.Padding = function() { return _Padding; }
+	this.Background = function() { return _Background; }
+	this.Border = function() { return _Border; }
+	this.Cursor = function() { return _Cursor; }
+	this.Font = function() { return _Font; }
+	this.Sizeable = function() { return _Sizeable; }
+	this.Hint = function() { return _Hint; }
+	this.zIndex = function() { return _zIndex; }
+	this.TabOrder = function() { return TabOrder; }
+	this.Transparency = function() { return _Transparency; }
+	this.Id = function() { return _Id; }
+
+	this.setElement = function(v) { _Element = v; }
+	this.setParent = function(v) { if (typeof v == "string") v = UI.$$(v); _Parent = v; }
+	this.setAlign = function(v) { _Align = v; }
+	this.setLeft = function(v) { if(typeof v != "string") v = v + "px"; _Left = v; _Element.style.left = v; }
+	this.setTop = function(v) { if(typeof v != "string") v = v + "px"; _Top = v; _Element.style.top = v; }
+    this.setWidth = function(v) { _Width = v; if (_Element) _Element.style.width = v; }
+    this.setHeight = function(v) { _Height = v; if (_Element) _Element.style.Height = v; }
+	this.setVisible = function(v) { _Visible = v; }
+	this.setEnabled = function(v) { _Enabled = v; }
+	this.setMargin = function(v) { _Margin = v; }
+	this.setPadding = function(v) { _Padding = v; }
+	this.setBackground = function(v) { _Background = v; }
+	this.setBorder = function(v) { _Border = v; }
+	this.setCursor = function(v) { _Cursor = v; }
+	this.setFont = function(v) { _Font = v; }
+	this.setSizeable = function(v) { _Sizeable = v; }
+	this.setHint = function(v) { _Hint = v; }
+	this.setzIndex = function(v) { _zIndex = v; }
+	this.setTabOrder = function(v) { _TabOrder = v; }
+	this.setTransparency = function(v) { _Transparency = v; }
+	this.setId = function(v) { if ((!v) || (v.trim()=="")) v = this.checkId(''); _Id = v; }
 
     return this;
     //this.__defineGetter__("Left", function(){ return this.fLeft; }); IE<=9 does not supports this!   
     //this.__defineSetter__("Left", function(val){ this.fLeft = val; });	
-}
-
-// Getters, setters...
-/*
-Control.prototype = {
-	get Element(){ return this.fElement; },
-
-	get Parent(){ return this.fparent; },
-	set Parent(val) { this.fparent = val; },
-
-	get Align(){ return this.fAlign; },
-	set Align(val) { this.fAlign = val; },
-
-	get Left(){ var p = UI.Position(this.fElement); this.fLeft = p[0]; return p[0]; },
-	set Left(val){ this.fLeft = val; this.Element.style.left = val;},
-
-	get Top(){ var p = UI.Position(this.fElement); this.fTop = p[1]; return p[1]; },
-	set Top(val){ this.fTop = val; this.Element.style.top = val;},
-
-	get Width(){ return this.fWidth; },
-	set Width(val){ this.fWidth = val; if (this.Element) this.Element.style.width = val; },
-
-	get Height(){ return this.fHeight; },
-	set Height(val){ this.fHeight = val; if (this.fElement) this.fElement.style.height = val; },
-
-	get Visible(){ return this.fVisible; },
-	set Visible(val){ this.fVisible = val; },
-
-	get Enabled(){ return this.fEnabled; },
-	set Enabled(val){ this.fEnabled = val; },
-
-	get Margin(){ return this.fMargin; },
-	set Margin(val){ this.fMargin = val; },
-
-	get Padding(){ return this.fPadding; },
-	set Padding(val){ this.fPadding = val; },
-
-	get Background(){ return this.fBackground; },
-	set Background(val){ this.fBackground = val; },
-
-	get Border(){ return this.fBorder; },
-	set Border(val){ this.fBorder = val; },
-
-	get Cursor(){ return this.fCursor; },
-	set Cursor(val){ this.fCursor = val; },
-
-	get Font(){ return this.fFont; },
-	set Font(val){ this.fFont = val; },
-
-	get Sizeable(){ return this.fSizeable; },
-	set Sizeable(val){ this.fSizeable = val; },
-
-	get Hint(){ return this.fHint; },
-	set Hint(val){ this.fHint = val; },
-
-	get ZIndex(){ return this.fZIndex; },
-	set ZIndex(val){ this.fZIndex = val; },
-
-	get TabOrder(){ return this.fTabOrder; },
-	set TabOrder(val){ this.fTabOrder = val; },
-
-	get Transparency(){ return this.fTransparency; },
-	set Transparency(val){ this.fTransparency = val; },
-
-	get id(){ return this.fId; },
-	set id(val){ if ((!val) || (val.trim()=="")) val = this.checkId(''); this.fId = val; }
-}
-*/
-Control.prototype.setParent = function(parent)
-{
-	if (typeof parent == "string") 
-		parent = UI.$$(parent);
-	this.Parent = parent;
 }
 
 Control.prototype.checkId = function(id)
@@ -611,11 +592,9 @@ Control.prototype.checkId = function(id)
 function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSearch, showButtons, showRowInfo, showPages)
 {
 	this.setParent(parent);
-	//this.Background.Owner = this;
-	//this.Border.Owner = this;
 
-	if (typeof parent == "string") 
-		parent = UI.$$(parent);
+	//if (typeof parent == "string") 
+	//	parent = UI.$$(parent);
 
 	if (typeof showSearch == "undefined") showSearch = true;
 	if (typeof showButtons == "undefined") showButtons = true;
@@ -629,9 +608,8 @@ function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSea
 	this.Dataset = ds;
 	this.Columns = cols;
 	this.OnSelectRow = selRowCallback;
-	this.Parent = parent;
-
 	this.OnRender = renderCallback;
+	//this.Parent = parent;	
 
 	var f, html =		
 	'<div>\n' +
@@ -683,9 +661,9 @@ function DBGrid(ds, parent, title, cols, selRowCallback, renderCallback, showSea
 	'	</div>\n'+					
 	'</div>';
 
-	parent.innerHTML = html;
+	this.Parent().innerHTML = html;
 	this.Name = '#grid-' + ds.Name;
-	this.Node = UI.$$(this.Name);
+	this.setElement(UI.$$(this.Name));
 
 	this.Dataset.Grid = this;
 
@@ -707,7 +685,7 @@ DBGrid.prototype.Render = function(DS)
 	
 	try
 	{			
-		if (this.Grid) G = this.Grid.Node;
+		if (this.Grid) G = this.Grid.Element();
 		var TR, i, j, r, C, Col;		
 		var NewGrid = false;
 
@@ -747,35 +725,68 @@ DBGrid.prototype.Render = function(DS)
 	}
 }
 
-UI.Dialog = function (parent, id, width, height, left, top, innerHTML, title)
+UI.Dialog = function (parent, id, width, height, left, top, HTML, title)
 {
 	this.setParent(parent);
-	this.Background.Owner = this;
-	this.Border.Owner = this;
-
-	var html;	
-	this.id = this.checkId(id);
-
-	html = '<div class="draggable" style="position:absolute" id="' + this.id + '"></div>';
-	$(this.Parent).prepend(html);
-	this.fElement = UI.$$('#' + this.id);
-
-	this.Left = left;
-	this.Top = top;
-	this.Width = width;
-	this.Height = height;		
-	this.fElement.innerHTML = innerHTML;		
-	this.Background.Color = UI.Theme.Colors.Highlight;
-	this.Border.Color = UI.Theme.Colors.Dark;
-	this.Border.Width = "1px";
-	this.Border.Style = "solid";
-	this.Dragging = false;
-
-	this.fElement.onmouseup = function(event) { this.Dragging = false; }
-	this.fElement.onmousedown = function(event){ this.Dragging = true; }
-	this.fElement.onmousemove = function(event) { if (this.Dragging) { this.Left = event.clientX; this.Top = event.clientY; } };
+	this.setId(id);
 	
-	new UI.Panel(this.fElement, null, 1000, 20, 0, 0, "<span style='padding-left:4px;font-weight:bold;font-size:10pt'>" + title + "</span>");
+	var E = UI.$$('#' + this.Id());
+
+	
+
+	if (!E)
+	{
+		var html = '<div div class="dialog draggable" style="position:absolute" id="' + this.Id() + '"></div>';	
+		$(this.Parent()).prepend(html);
+		this.setElement(UI.$$('#' + this.Id()));
+		this.setLeft(left);
+		this.setTop(top);
+		this.setWidth(width);
+		this.setHeight(height);		
+	}
+	
+	this.setElement(UI.$$('#' + this.Id()));
+	this.Element().style.display = 'block';	
+	this.Element().innerHTML = HTML;		
+	this.Background().setColor(UI.Theme.Colors.Highlight);
+
+	this.Border().setColor(UI.Theme.Colors.Dark);
+	this.Border().setWidth("1px");
+	this.Border().setStyle("solid");
+	this.Dragging = false;
+	this.OffsetX = 0;
+	this.OffsetY = 0;
+
+	this.Element().onmouseup = function(event) { 
+		this.Dragging = false; 
+		this.style.opacity = 1;
+		this.style.filter = 'alpha(opacity=' + 100 + ')';
+		document.onselectstart = function(){ return true; } 
+	}
+	this.Element().onmousedown = function(event){ 
+		if ((!event) || (event == undefined)) event = window.event;
+		this.Dragging = true; 
+		this.OffsetX = parseInt(this.style.left) - event.clientX; 
+		this.OffsetY = parseInt(this.style.top) - event.clientY; 
+		
+		document.onselectstart = function(){ return false; }
+	}
+	this.Element().onmousemove = function(event) { if (this.Dragging) { 
+		if ((!event) || (event == undefined)) event = window.event;
+
+		this.style.opacity = 0.7;
+		this.style.filter = 'alpha(opacity=' + 70 + ')';
+
+		var x = event.clientX + this.OffsetX, y = event.clientY + this.OffsetY;
+
+		x += "px";
+		y += "px";
+
+		this.style.left = x; 
+		this.style.top = y; }
+	};
+
+	new UI.Panel(this.Element(), null, null, 20, 0, 0, "<div onclick=\"UI.$$('#" + this.Id() + "').style.display='none';\" onmouseover=\"$(this).addClass('icon-closethick');\" onmouseout=\"$(this).removeClass('icon-closethick');\" style='float:right' class='icon icon-close'></div><span style='padding-left:4px;font-weight:bold;font-size:10pt;color:" + UI.Theme.Colors.Dark +"'>" + title + "</span>");
 	return this;
 }
 UI.Dialog.prototype = new Control(); 
@@ -784,28 +795,23 @@ UI.Dialog.prototype = new Control();
 // Panel class, div wrapper                                                               *
 // ****************************************************************************************
 
-UI.Panel = function (parent, id, width, height, left, top, innerHTML, align)
+UI.Panel = function (parent, id, width, height, left, top, HTML, align)
 {
-	this.setParent(parent);
-	this.Background.Owner = this;
-	this.Border.Owner = this;
-
 	var html;
-		
-	this.id = this.checkId(id);
 
-	html = '<div class="panel" id="' + this.id + '"></div>';
-	$(this.Parent).prepend(html);
-	this.fElement = UI.$$('#' + this.id);
+	this.setParent(parent);	
+	this.setId(id);
 
-	this.Align = align;
-	this.Left = left;
-	this.Top = top;
-	this.Width = width;
-	this.Height = height;
-	this.fElement.innerHTML = innerHTML;		
-	//this.Background.Repeat = "repeat-x";
-	//this.Background.Image = "'/gradient-" + UI.Theme.Name +"-64.png'";
+	html = '<div class="panel" id="' + this.Id() + '"></div>';	
+	$(this.Parent()).prepend(html);
+	this.setElement(UI.$$('#' + this.Id()));
+
+	this.setAlign(align);
+	this.setLeft(left);
+	this.setTop(top);
+	this.setWidth(width);
+	this.setHeight(height);
+	this.Element().innerHTML = HTML;
 }
 
 UI.Panel.prototype = new Control(); 
@@ -977,7 +983,7 @@ UI.ParseDate = function (d)
 }
 
 // Autocompletion combobox with filter search
-UI.Combo = function (id, h, l) {
+UI.Combo = function (id, h, l, list) {
 	var self = this; 
 	self.h = h; 
 	self.l = l; 
@@ -990,6 +996,8 @@ UI.Combo = function (id, h, l) {
 	// else {
 	self.ul = self.inp.nextSibling; 
 	
+	if (typeof list != "undefined") self.ul = list;
+
 	while (self.ul.nodeType == 3) 
 	   self.ul = self.ul.nextSibling; 		
 	// }
